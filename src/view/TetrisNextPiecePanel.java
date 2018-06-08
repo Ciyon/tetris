@@ -1,0 +1,202 @@
+/*
+ * TCSS 305 - Tetris
+ */
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Rectangle2D;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
+import model.Board;
+import model.MovableTetrisPiece;
+import model.Point;
+
+/**
+ * The info panel of the Tetris game, which holds the next piece and the score.
+ * @author Brandon Gaetaniello
+ * @version 12/9/16
+ */
+public class TetrisNextPiecePanel extends JPanel implements Observer
+{
+    /**
+     * The serialVersionUID for this class.
+     */
+    private static final long serialVersionUID = -1021298425416197415L;
+
+    /**
+     * Constant used for spacing shapes by a small amount.
+     */
+    private static final int SMALL_SPACING = 10;
+    
+    /**
+     * Constant used for spacing shapes by a medium amount.
+     */
+    private static final int MEDIUM_SPACING = 15;
+    
+    /**
+     * Constant used for spacing shapes by a large amount.
+     */
+    private static final int LARGE_SPACING = 50;
+    
+    /**
+     * Constant used for spacing the height of shapes.
+     */
+    private static final int HEIGHT_SPACING = 65;
+    
+    /**
+     * Constant for the font size of strings.
+     */
+    private static final int FONT_SIZE = 20;
+    
+    /**
+     * The size of the JPanel.
+     */
+    private static final Dimension PANEL_SIZE = new Dimension(200, 175);
+    
+    /**
+     * The border for the next piece information.
+     */
+    private static final Rectangle2D NEXT_PIECE_BORDER = 
+                    new Rectangle2D.Double(45, 45, 100, 100);
+    
+    /**
+     * A Point holding the value where the string "Next Piece" needs to be.
+     */
+    private static final Point NEXT_PIECE_STRING = 
+                    new Point(50, 30);
+        
+    /**
+     * A map holding the different types of blocks characters and their colors.
+     */
+    private final Map<Character, Color> myBlocks;
+    
+    /**
+     * The next Tetris piece, represented by a MovableTetrisPiece object.
+     */
+    private MovableTetrisPiece myNextPiece;
+    
+    /**
+     * Constructor for initializing fields.
+     * @param theBlocks is a Map holding the different Tetris blocks.
+     * @param theBoard is the Board object.
+     */
+    public TetrisNextPiecePanel(final Map<Character, Color> theBlocks, final Board theBoard)
+    {
+        super();       
+        myBlocks = theBlocks;
+        setBackground(Color.BLACK);
+        setPreferredSize(PANEL_SIZE);
+        theBoard.addObserver(this);
+    }
+    
+    /**
+     * If the user wants a different grid size, the board needs to be reset.
+     * @param theBoard is the new Board to be set.
+     */
+    public void setBoard(final Board theBoard)
+    {
+        theBoard.addObserver(this);
+    }
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics)
+    {
+        int xValue = 0;
+        int yValue = 0;
+        super.paintComponent(theGraphics);
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // Sets the color to gray, then creates the border of the next piece view.
+        g2d.setColor(Color.GRAY);
+        g2d.draw(NEXT_PIECE_BORDER);
+        g2d.setColor(Color.RED);
+        g2d.setFont(new Font(Font.SERIF, Font.BOLD, FONT_SIZE));
+        g2d.drawString("Next Piece", NEXT_PIECE_STRING.getX(),
+                       NEXT_PIECE_STRING.getY());
+        
+        g2d.setColor(Color.GRAY);
+        // Draws a line between the next piece and score.
+        g2d.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+        
+        if (myNextPiece != null)
+        {
+            // Iterates through the next piece string.
+            for (int i = 0; i < myNextPiece.toString().length(); i++)
+            {
+                xValue += MEDIUM_SPACING;
+                
+                /**
+                 * Whenever there is a new line character, the y value 
+                 * is incremented and the x value is set to zero.
+                 */
+                if (myNextPiece.toString().charAt(i) == '\n')
+                {
+                    yValue += MEDIUM_SPACING;
+                    xValue = 0;
+                }
+                
+                /**
+                 * If the character is in the blocks map, a Tetris block will be drawn.
+                 */
+                else if (myBlocks.containsKey(myNextPiece.toString().charAt(i)))
+                {
+                    g2d.setColor(myBlocks.get
+                                 (myNextPiece.toString().charAt(i))); 
+                    
+                    // Special case for the O and I blocks since they are shaped differently.
+                    if (myNextPiece.toString().charAt(i) == 'O' 
+                                    || myNextPiece.toString().charAt(i) == 'I')
+                    {
+                        g2d.fill(new Rectangle2D.Double(xValue + LARGE_SPACING,
+                                                       yValue + HEIGHT_SPACING,
+                                                       MEDIUM_SPACING, MEDIUM_SPACING));
+                        g2d.setColor(Color.BLACK);
+                        g2d.draw(new Rectangle2D.Double(xValue + LARGE_SPACING,
+                                                       yValue + HEIGHT_SPACING,
+                                                       MEDIUM_SPACING, MEDIUM_SPACING));
+                    }                        
+                    
+                    // Case for the rest of the blocks.
+                    else 
+                    {
+                        g2d.fill(new Rectangle2D.Double(xValue + LARGE_SPACING 
+                                                        + SMALL_SPACING, yValue 
+                                                        + HEIGHT_SPACING,
+                                                        MEDIUM_SPACING, MEDIUM_SPACING));
+                        g2d.setColor(Color.BLACK);
+                        g2d.draw(new Rectangle2D.Double(xValue + LARGE_SPACING 
+                                                        + SMALL_SPACING, yValue 
+                                                        + HEIGHT_SPACING,
+                                                        MEDIUM_SPACING, MEDIUM_SPACING)); 
+                    }
+                    
+                }  
+            }
+        
+        }
+    }
+    
+    @Override
+    public void update(final Observable theObs, final Object theObj)
+    {
+        // If the Board notifies of a MovableTetrisPiece, it is the next piece.
+        if (theObj instanceof MovableTetrisPiece)
+        {
+            myNextPiece = (MovableTetrisPiece) theObj;     
+        }      
+        
+        // After each update, the panel is repainted.
+        repaint();
+    }
+}
