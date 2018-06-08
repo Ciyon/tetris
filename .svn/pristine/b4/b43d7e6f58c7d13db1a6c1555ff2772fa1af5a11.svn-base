@@ -1,0 +1,277 @@
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
+import model.Board;
+import model.Point;
+
+/**
+ * 
+ * @author Brandon Gaetaniello
+ * @version 12/9/16
+ */
+public class TetrisScoringPanel extends JPanel implements Observer
+{
+    /**
+     * Constant for the font size of strings.
+     */
+    private static final int TITLE_FONT_SIZE = 20;
+    
+    /**
+     * Constant for the font size of strings.
+     */
+    private static final int STRING_FONT_SIZE = 15;
+    
+    /**
+     * Constant for the font size of strings.
+     */
+    private static final int SMALL_STRING_FONT_SIZE = 13;
+    
+    /**
+     * 
+     */
+    private static final int MAXIMUM_LEVEL = 5;
+    
+    /**
+     * 
+     */
+    private static final int SCORING_MULTIPLIER = 100;
+    
+    /**
+     * 
+     */
+    private static final int LEVEL_DELAY_INCREASE = 175;
+    
+    /**
+     * 
+     */
+    private static final int LEVEL_POINTS = 1000;
+    
+    /**
+     * The size of the JPanel.
+     */
+    private static final Dimension PANEL_SIZE = new Dimension(200, 175);
+    
+    /**
+     * A Point holding the value where the string "Score" needs to be drawn.
+     */
+    private static final Point TITLE_LOCATION = 
+                    new Point(70, 20);
+    
+    /**
+     * A Point holding the value where the string "Level:" needs to be drawn.
+     */
+    private static final Point LEVEL_STRING_LOCATION = 
+                    new Point(5, 50);
+    
+    /**
+     * A Point holding the value where the string "Points:" needs to be drawn.
+     */
+    private static final Point POINTS_STRING_LOCATION = 
+                    new Point(5, 85);
+     
+    /**
+     * A Point holding the value where the string "Lines Cleared:" needs to be drawn.
+     */
+    private static final Point LINES_CLEARED_STRING_LOCATION = 
+                    new Point(5, 120);
+    
+    /**
+     * A Point holding the value where the string "Current Level" needs to be drawn.
+     */
+    private static final Point POINTS_NEXT_LEVEL_STRING_LOCATION = 
+                    new Point(5, 155);
+    
+    /**
+     * A Point holding the value where the string "Current Level" needs to be drawn.
+     */
+    private static final Point LEVEL_LOCATION = 
+                    new Point(50, 50);
+    
+    /**
+     * A Point holding the value where the string "Current Level" needs to be drawn.
+     */
+    private static final Point POINTS_LOCATION = 
+                    new Point(55, 85);
+  
+    /**
+     * A Point holding the value where the string "Current Level" needs to be drawn.
+     */
+    private static final Point LINES_CLEARED_LOCATION = 
+                    new Point(105, 120);
+    
+    /**
+     * A Point holding the value where the string "Current Level" needs to be drawn.
+     */
+    private static final Point POINTS_NEXT_LEVEL_LOCATION = 
+                    new Point(155, 155);
+    
+    /**
+     * 
+     */
+    private final TetrisDrawingPanel myDrawingPanel;
+       
+    /**
+     * 
+     */
+    private Integer[] myScoringArray;
+      
+    /**
+     * 
+     */
+    private int myPoints;
+    
+    /**
+     * 
+     */
+    private int myLevel;
+    
+    /**
+     * 
+     */
+    private int myLinesCleared;
+    
+    /**
+     * 
+     */
+    private int myNextLevel;
+    
+    
+    /**
+     * 
+     * @param theDrawingPanel 
+     */
+    public TetrisScoringPanel(final TetrisDrawingPanel theDrawingPanel)
+    {
+        super();
+        myDrawingPanel = theDrawingPanel;
+        myPoints = 0;
+        myLevel = 1;
+        myLinesCleared = 0;
+        myNextLevel = LEVEL_POINTS;
+        setBackground(Color.BLACK);
+        setPreferredSize(PANEL_SIZE);
+    }
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics)
+    {
+        super.paintComponent(theGraphics);
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setColor(Color.GREEN);
+        g2d.setFont(new Font(Font.SERIF, Font.BOLD, TITLE_FONT_SIZE));
+        g2d.drawString("Score", TITLE_LOCATION.getX(), TITLE_LOCATION.getY());
+        
+        g2d.setFont(new Font(Font.SERIF, Font.BOLD, STRING_FONT_SIZE));
+        
+        g2d.drawString("Level: ", LEVEL_STRING_LOCATION.getX(),
+                       LEVEL_STRING_LOCATION.getY());
+        
+        g2d.drawString("Points: ", POINTS_STRING_LOCATION.getX(),
+                       POINTS_STRING_LOCATION.getY());
+        
+        g2d.drawString("Lines Cleared: ", LINES_CLEARED_STRING_LOCATION.getX(),
+                       LINES_CLEARED_STRING_LOCATION.getY());
+        
+        
+        
+        g2d.drawString("Points To Next Level: ", POINTS_NEXT_LEVEL_STRING_LOCATION.getX(),
+                       POINTS_NEXT_LEVEL_STRING_LOCATION.getY());
+        
+        if (myDrawingPanel.isRunning())
+        {
+            g2d.setFont(new Font(Font.SERIF, Font.BOLD, SMALL_STRING_FONT_SIZE));
+            computePoints();
+            
+            
+            g2d.drawString(Integer.toString(myPoints), POINTS_LOCATION.getX(),
+                           POINTS_LOCATION.getY());
+            
+            g2d.drawString(Integer.toString(myLinesCleared), LINES_CLEARED_LOCATION.getX(),
+                           LINES_CLEARED_LOCATION.getY());
+                       
+            if (myLevel == MAXIMUM_LEVEL)
+            {
+                g2d.drawString(Integer.toString(myLevel) + "(MAX LEVEL)",
+                               LEVEL_LOCATION.getX(),
+                               LEVEL_LOCATION.getY());
+                
+                g2d.drawString("0", POINTS_NEXT_LEVEL_LOCATION.getX(),
+                               POINTS_NEXT_LEVEL_LOCATION.getY());
+            }           
+            else
+            {                        
+                g2d.drawString(Integer.toString(myLevel), LEVEL_LOCATION.getX(),
+                               LEVEL_LOCATION.getY());
+                
+                g2d.drawString(Integer.toString(myNextLevel), 
+                               POINTS_NEXT_LEVEL_LOCATION.getX(),
+                               POINTS_NEXT_LEVEL_LOCATION.getY());
+            }
+        }
+        
+    }
+    
+    /**
+     * 
+     */
+    public void reset()
+    {
+        myPoints = 0;
+        myLevel = 1;
+        myLinesCleared = 0;
+        myNextLevel = LEVEL_POINTS;
+    }
+    
+    /**
+     * 
+     */
+    private void computePoints()
+    {
+        if (myScoringArray != null)
+        {
+            if (myScoringArray.length > 0)
+            {
+                myLinesCleared += myScoringArray.length;
+                myPoints += myScoringArray.length * SCORING_MULTIPLIER; 
+                myScoringArray = null;
+            }
+            
+            if (myPoints % LEVEL_POINTS == 0 && myLevel != MAXIMUM_LEVEL)
+            {
+                myDrawingPanel.getTimer().setDelay(myDrawingPanel.getTimer().getDelay()
+                                                   - LEVEL_DELAY_INCREASE);
+                myLevel++;
+            }
+                        
+            myNextLevel = (LEVEL_POINTS * myLevel) - myPoints;                
+        }       
+    }
+       
+    @Override
+    public void update(final Observable theObs, final Object theObj)
+    {
+        /**
+         *  If a line is cleared, the Board class will tell the drawing panel
+         *  which lines and how many were cleared
+         */
+        if (theObj instanceof Integer[])
+        {
+            myScoringArray = (Integer[]) theObj;
+            
+        }
+        
+        repaint();
+    }
+}

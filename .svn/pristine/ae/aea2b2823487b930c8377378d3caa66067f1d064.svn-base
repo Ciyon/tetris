@@ -1,0 +1,268 @@
+/*
+ * TCSS 305 - Tetris
+ */
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.geom.Rectangle2D;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import model.Board;
+
+/**
+ * Draws the Tetris pieces and game based on the board's internal state.
+ * @author Brandon Gaetaniello
+ * @version 12/9/16
+ */
+public class TetrisDrawingPanel extends JPanel implements Observer
+{
+
+    /**
+     * The size of the JPanel.
+     */
+    private static final Dimension PANEL_SIZE = new Dimension(215, 350);
+    
+    /**
+     * The timers delay.
+     */
+    private static final int TIME_DELAY = 1000;
+    
+    /**
+     * A transparent gray used for a game over screen. 
+     */
+    private static final Color TRANSPARENT_GRAY = new Color(211, 211, 211, 127);
+    
+    /**
+     * Constant used for spacing shapes.
+     */
+    private static final int SPACING = 15;
+    
+    /**
+     * Font size for drawing strings.
+     */
+    private static final int FONT_SIZE = 15;
+    
+    /**
+     * Constant used to hold the value where the top of the game is, based on the toString.
+     */
+    private static final int TOP_OF_GAME = 50;
+    
+    /**
+     * A Rectangle2D object that shows the boundaries of the game's area.
+     */
+    private final Rectangle2D myGameArea;
+    
+    /**
+     * The Timer object used for the game.
+     */
+    private final Timer myTimer;
+    
+    /**
+     * The board object holding the game's internal board.
+     */
+    private final Board myBoard;
+    
+    /**
+     * An instantiation of the KeyBoardListener object used for listening to keystrokes.
+     */
+    private final KeyBoardListener myKeyListener;
+    
+    /**
+     * A map holding the different types of blocks characters and their colors.
+     */
+    private final Map<Character, Color> myBlocks;
+    
+    /**
+     * Boolean saying whether or not the game is over.
+     */
+    private Boolean myGameOver;
+    
+    /**
+     * The toString of the board. 
+     */
+    private String myBoardString;
+    
+    /**
+     * Constructor for initializing fields.
+     * @param theBlocks is a Map holding the different Tetris blocks.
+     * @param theBoard is the Board object.
+     */
+    public TetrisDrawingPanel(final Map<Character, Color> theBlocks, final Board theBoard)
+    {
+        super();
+        myGameOver = false;
+        myBlocks = theBlocks;
+        myBoard = theBoard;
+        myKeyListener = new KeyBoardListener(myBoard);
+        
+        // The game's boundaries are shown as a gray rectangle.
+        myGameArea = new Rectangle2D.Double(30, 30, 150, 300);
+        
+        // Each iteration of the delay, the Board is told to do a down movement.
+        myTimer = new Timer(TIME_DELAY, new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                myBoard.down();
+            }
+        });
+        
+        myBoardString = myBoard.toString();
+        setup();     
+    }
+    
+    /**
+     * Sets up the JPanel.
+     */
+    private void setup()
+    {
+        setPreferredSize(PANEL_SIZE);
+        setBackground(Color.BLACK);
+        addKeyListener(myKeyListener);
+        addFocusListener(new FocusCheck());
+        setFocusable(true);        
+        myTimer.setDelay(TIME_DELAY);
+        myBoard.addObserver(this);
+        myBoard.newGame();
+        myTimer.start();
+        
+        
+    }
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics)
+    {
+        int yValue = 0;
+        int xValue = 0;
+        super.paintComponent(theGraphics);
+        final Graphics2D g2d = (Graphics2D) theGraphics;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                               RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // First, the game's boundaries are drawn.
+        g2d.setColor(Color.GRAY);
+        g2d.draw(myGameArea);
+        
+        /**
+         *  Then, the game iterates through the board's toString. i is set to
+         *  the TOP_OF_GAME constant so that it starts at the top of the game,
+         *  rather than the top of the string.
+         */
+        for (int i = TOP_OF_GAME; i < myBoardString.length(); i++)
+        {
+            xValue += SPACING;
+            
+            /**
+             * Whenever there is a new line character, the y value 
+             * is incremented and the x value is set to zero.
+             */
+            if (myBoardString.charAt(i) == '\n')
+            {
+                yValue += SPACING;
+                xValue = 0;
+            }
+            
+            /**
+             * If the character is in the blocks map, a Tetris block will be drawn.
+             */
+            else if (myBlocks.containsKey(myBoardString.charAt(i)))
+            {
+                g2d.setColor(myBlocks.get(myBoardString.charAt(i)));                         
+                g2d.fill(new Rectangle2D.Double(xValue, yValue, SPACING, SPACING));
+                g2d.setColor(Color.BLACK);
+                g2d.draw(new Rectangle2D.Double(xValue, yValue, SPACING, SPACING));
+            }
+        }
+        
+        /**
+         *  This checks to see if the game is over, if it is, 
+         *  it will draw a game over screen accordingly.
+         */
+        if (myGameOver)
+        {
+            g2d.setColor(TRANSPARENT_GRAY);
+            g2d.fill(myGameArea);     
+            g2d.setColor(Color.RED);
+            g2d.setFont(new Font(Font.SERIF, Font.BOLD, FONT_SIZE));
+            g2d.drawString("GAME OVER", SPACING * 4,
+                           SPACING);
+            g2d.setColor(Color.DARK_GRAY);
+            g2d.draw(myGameArea);
+        }
+        
+    }
+    
+    @Override
+    public void update(final Observable theObs, final Object theObj)
+    {
+        // This is when the Board class sends the drawing panel the toString.
+        if (theObj instanceof String)
+        {
+            myBoardString = (String) theObj;
+        }
+        
+        // When the game is over, the Board class notifies the drawing panel.
+        if (theObj instanceof Boolean)
+        {
+            myGameOver = (Boolean) theObj;
+            myTimer.stop();
+        }
+        
+        /**
+         *  If a line is cleared, the Board class will tell the drawing panel
+         *  which lines and how many were cleared
+         */
+        /*if (theObj instanceof Integer[])
+        {
+            System.out.println(Arrays.toString((Integer[]) theObj));
+        }*/
+        
+        // After each update, the panel is repainted.
+        repaint();
+    }
+    
+    /**
+     * Returns the controls from the KeyListener.
+     * @return a Map that holds the controls and their keystrokes.
+     */
+    public Map<String, Integer> getControls()
+    {
+        return myKeyListener.myControls;
+    }
+    
+    /**
+     * This class stops the timer if the program isn't in focus,
+     * and when the focus is regained, the timer is started again.
+     */
+    private class FocusCheck implements FocusListener
+    {
+
+        @Override
+        public void focusGained(final FocusEvent theEvent)
+        {
+            myTimer.start();            
+        }
+
+        @Override
+        public void focusLost(final FocusEvent theEvent)
+        {
+            myTimer.stop();            
+        }
+        
+    }
+}

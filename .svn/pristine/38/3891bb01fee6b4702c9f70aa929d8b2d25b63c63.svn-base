@@ -1,0 +1,157 @@
+
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
+import model.Board;
+
+
+public class TetrisGUI extends JFrame
+{
+    /**
+     * 
+     */
+    private static final Color COLOR_BROWN = new Color(139, 69, 19);
+    
+    /**
+     * 
+     */
+    private static final Color COLOR_BURGUNDY = new Color(140, 0, 26);
+    /**
+     * 
+     */
+    private static final Color COLOR_TURQUOISE = new Color(32, 178, 170);
+    
+    /**
+     * 
+     */
+    private final TetrisDrawingPanel myDrawingPanel;
+    
+    /**
+     * 
+     */
+    private final TetrisInfoPanel myInfoPanel;
+    
+    /**
+     * 
+     */
+    public TetrisGUI()
+    {
+        super("Tetris");
+        final Board board = new Board();
+        myInfoPanel = new TetrisInfoPanel(getBlocks(), board);
+        myDrawingPanel = new TetrisDrawingPanel(getBlocks(), board);
+        start();
+    }
+    
+    /**
+     * 
+     */
+    private void start()
+    {
+        
+        add(createWPanel(), BorderLayout.WEST);        
+        add(createEPanel(), BorderLayout.EAST);
+        setJMenuBar(createMenu());
+        pack();
+        setMinimumSize(getBounds().getSize());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+        setVisible(true);
+        setLocationRelativeTo(null);       
+    }
+    /**
+     * 
+     * @return Map 
+     */
+    private Map<Character, Color> getBlocks()
+    {
+        final Map<Character, Color> blocks = new HashMap<Character, Color>();
+        blocks.put('I', Color.CYAN);
+        blocks.put('J', COLOR_BURGUNDY);
+        blocks.put('L', Color.GREEN);
+        blocks.put('O', Color.PINK);
+        blocks.put('S', Color.RED);
+        blocks.put('T', COLOR_TURQUOISE);
+        blocks.put('Z', COLOR_BROWN);
+        
+        return blocks;
+    }
+    
+    /**
+     * 
+     * @return JPanel 
+     */
+    private JPanel createWPanel()
+    {
+        final JPanel panel = new JPanel();
+        panel.setBackground(Color.GRAY);
+        panel.add(myDrawingPanel, BorderLayout.NORTH);
+        return panel;
+    }
+    
+    /**
+     * 
+     * @return JPanel 
+     */
+    private JPanel createEPanel()
+    {
+        final JPanel panel = new JPanel();
+        panel.setBackground(Color.GRAY);
+        panel.add(myInfoPanel, BorderLayout.NORTH);
+        return panel;
+    }
+    
+    /**
+     * 
+     * @return JMenuBar 
+     */
+    private JMenuBar createMenu()
+    {
+        final JMenuBar bar = new JMenuBar();
+        final JMenu help = new JMenu("Help");
+        final JMenuItem controls = new JMenuItem("Controls");
+        final Map<Integer, String> controlMap = myDrawingPanel.getControls();
+        final ArrayList<Integer> options = new ArrayList<Integer>();
+        
+        String message = "";
+        for (int key : controlMap.keySet())
+        {
+            options.add(key);
+            message = message + controlMap.get(key) + ": "
+                +  KeyEvent.getKeyText(key) + " Key\n";
+        }
+        
+        final String controlMessage = message;
+        controls.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                JOptionPane.showMessageDialog(null, controlMessage,
+                                              "Keys", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        
+        help.add(controls);
+        bar.add(help);
+        return bar;
+    }
+
+    
+}

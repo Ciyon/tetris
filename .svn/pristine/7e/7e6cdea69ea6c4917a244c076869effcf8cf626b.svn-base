@@ -1,0 +1,84 @@
+
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+
+public class TetrisGUI extends JFrame
+{
+    
+    /**
+     * 
+     */
+    private static final Color COLOR_BROWN = new Color(139, 69, 19);
+    
+    /**
+     * 
+     */
+    private static final Color COLOR_BURGUNDY = new Color(140, 0, 26);
+    /**
+     * 
+     */
+    private static final Color COLOR_TURQUOISE = new Color(32, 178, 170);
+    
+    /**
+     * 
+     */
+    private final TetrisDrawingPanel myDrawingPanel;
+    
+    private final TetrisInfoPanel myInfoPanel;
+
+    public TetrisGUI()
+    {
+        super("Tetris");
+        myDrawingPanel = new TetrisDrawingPanel(getBlocks());
+        myInfoPanel = new TetrisInfoPanel(getBlocks());
+        start();
+    }
+    
+    private void start()
+    {
+        add(createWPanel(), BorderLayout.WEST);        
+        add(createEPanel(), BorderLayout.EAST);
+        pack();
+        setMinimumSize(getBounds().getSize());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
+        setLocationRelativeTo(null);       
+    }
+    private Map<Character, Color> getBlocks()
+    {
+        HashMap<Character, Color> blocks = new HashMap<Character, Color>();
+        blocks.put('I', Color.CYAN);
+        blocks.put('J', COLOR_BURGUNDY);
+        blocks.put('L', Color.GREEN);
+        blocks.put('O', Color.PINK);
+        blocks.put('S', Color.RED);
+        blocks.put('T', COLOR_TURQUOISE);
+        blocks.put('Z', COLOR_BROWN);
+        
+        return blocks;
+    }
+    
+    private JPanel createWPanel()
+    {
+        JPanel panel = new JPanel();
+        panel.add(myDrawingPanel, BorderLayout.NORTH);
+        return panel;
+    }
+    
+    private JPanel createEPanel()
+    {
+        JPanel panel = new JPanel();
+        panel.add(myInfoPanel, BorderLayout.NORTH);
+        return panel;
+    }
+
+    
+}

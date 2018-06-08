@@ -1,0 +1,67 @@
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
+import model.MovableTetrisPiece;
+
+public class TetrisInfoPanel extends JPanel implements Observer
+{
+    /**
+     * 
+     */
+    private String myNextPiece;
+    
+    
+    /**
+     * The size of the JPanel.
+     */
+    private static final Dimension PANEL_SIZE = new Dimension(215, 350);
+    
+    /**
+     * 
+     */
+    private final Map<Character, Color> myBlocks;
+    
+    public TetrisInfoPanel(Map<Character, Color> theBlocks)
+    {
+        super();
+        myBlocks = theBlocks;
+        createPanel();
+    }
+    
+    private void createPanel()
+    {
+        setBackground(Color.BLACK);
+    }
+    
+    @Override
+    public void paintComponent(final Graphics theGraphics)
+    {
+        super.paintComponent(theGraphics);
+        Graphics2D g2d = (Graphics2D) theGraphics;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setColor(Color.GRAY);
+        g2d.drawRect(30, 30, 150, 300);
+        
+    }
+    
+    @Override
+    public void update(final Observable theObs, final Object theObj)
+    {
+        if (theObj instanceof MovableTetrisPiece)
+        {
+            myNextPiece = theObj.toString();
+        }
+        repaint();
+    }
+}

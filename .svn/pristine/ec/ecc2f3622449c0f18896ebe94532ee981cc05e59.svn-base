@@ -1,0 +1,101 @@
+package view;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.Map;
+
+import model.Board;
+
+/**
+ * 
+ * @author Brandon
+ *
+ */
+public class KeyBoardListener extends KeyAdapter
+{
+    /**
+     * 
+     */
+    private static final String DOWN = "DOWN";
+    
+    /**
+     * 
+     */
+    private static final String LEFT = "LEFT";
+    /**
+     * 
+     */
+    private static final String RIGHT = "RIGHT";
+    /**
+     * 
+     */
+    private static final String DROP = "DROP";
+    /**
+     * 
+     */
+    private static final String ROTATE = "ROTATE";
+    /**
+     * 
+     */
+    protected Map<Integer, String> myControls;
+    
+    
+    
+    /**
+     * 
+     */
+    private Board myBoard;
+    
+    /**
+     * 
+     * @param theBoard 
+     */
+    public KeyBoardListener(final Board theBoard)
+    {
+        myBoard = theBoard;
+        setDefaultControls();
+    }
+    
+    /**
+     * 
+     */
+    private void setDefaultControls()
+    {
+        myControls = new HashMap<Integer, String>();
+        myControls.put(KeyEvent.VK_DOWN, DOWN);
+        myControls.put(KeyEvent.VK_LEFT, LEFT);
+        myControls.put(KeyEvent.VK_RIGHT, RIGHT);
+        myControls.put(KeyEvent.VK_SPACE, DROP);
+        myControls.put(KeyEvent.VK_R, ROTATE);
+        
+    }
+    
+    @Override
+    public void keyPressed(final KeyEvent theEvent)
+    {
+        final String action = myControls.get(theEvent.getKeyCode());
+        
+        if (DOWN.equals(action))
+        {
+            myBoard.down();
+        }
+        else if (LEFT.equals(action))
+        {
+            myBoard.left();
+        }
+        else if (RIGHT.equals(action))
+        {
+            myBoard.right();
+        }
+        else if (DROP.equals(action))
+        {
+            myBoard.drop();
+        }
+        else if (ROTATE.equals(action))
+        {
+            myBoard.rotate();
+        }
+        
+    }
+}

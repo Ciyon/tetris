@@ -1,0 +1,146 @@
+/*
+ * TCSS 305 - Tetris
+ */
+package view;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.Map;
+
+import model.Board;
+
+/**
+ * Class that listens to specific keystrokes for calling movement methods.
+ * @author Brandon Gaetaniello
+ * @version 12/9/16
+ */
+public class KeyBoardListener extends KeyAdapter
+{
+    /**
+     * String representation for down.
+     */
+    private static final String DOWN = "Down";
+    
+    /**
+     * String representation for left.
+     */
+    private static final String LEFT = "Left";
+    
+    /**
+     * String representation for right.
+     */
+    private static final String RIGHT = "Right";
+    
+    /**
+     * String representation for drop.
+     */
+    private static final String DROP = "Drop";
+    
+    /**
+     * String representation for rotate.
+     */
+    private static final String ROTATE = "Rotate";
+    
+    /**
+     * String representation for pausing.
+     */
+    private static final String PAUSE = "Pause";
+    
+    /**
+     * Map that holds the controls, with their specific key bindings.
+     */
+    protected Map<String, Integer> myControls;
+    
+    /**
+     * The board object holding the game's internal board.
+     */
+    private final Board myBoard;
+    
+    /**
+     * The drawing panel object for drawing the game.
+     */
+    private final TetrisDrawingPanel myPanel;
+    
+    /**
+     * Constructor for the listener class.
+     * @param theBoard is the board object.
+     * @param thePanel is the drawing panel.
+     */
+    public KeyBoardListener(final Board theBoard, final TetrisDrawingPanel thePanel)
+    {
+        super();
+        myControls = new HashMap<String, Integer>();
+        myBoard = theBoard;
+        myPanel = thePanel;
+        setDefaultControls();
+    }
+    
+    /**
+     * Sets the control map to default controls.
+     */
+    private void setDefaultControls()
+    {
+        myControls.put(DOWN, KeyEvent.VK_DOWN);
+        myControls.put(LEFT, KeyEvent.VK_LEFT);
+        myControls.put(RIGHT, KeyEvent.VK_RIGHT);
+        myControls.put(DROP, KeyEvent.VK_SPACE);
+        myControls.put(ROTATE, KeyEvent.VK_R);
+        myControls.put(PAUSE, KeyEvent.VK_P);
+    }
+    
+    @Override
+    public void keyPressed(final KeyEvent theEvent)
+    {
+        String action = "";
+        // Iterates through the controls for the specific control options.
+        for (final String key : myControls.keySet())
+        {
+            /**
+             *  If the keystroke associated with the control option 
+             *  is theEvent, the option need to be performed.
+             */
+            if (myControls.get(key) == theEvent.getKeyCode())
+            {
+                action = key;
+            }
+        }
+        
+        
+        /**
+         *  This checks to see if the game is paused / game is over, if it isn't, 
+         *  then it will move the Tetris pieces based on the key movement.
+         */
+        if (myPanel.isRunning())
+        {
+         // Calls the specific methods according to the action name.
+            
+            if (DOWN.equals(action))
+            {
+                myBoard.down();
+            }
+            else if (LEFT.equals(action))
+            {
+                myBoard.left();
+            }
+            else if (RIGHT.equals(action))
+            {
+                myBoard.right();
+            }
+            else if (DROP.equals(action))
+            {
+                myBoard.drop();
+            }
+            else if (ROTATE.equals(action))
+            {
+                myBoard.rotate();
+            }           
+        }
+        
+        if (PAUSE.equals(action))
+        {
+            myPanel.myGamePaused = !myPanel.myGamePaused;
+            myPanel.repaint();
+        }
+    }
+}

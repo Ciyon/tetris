@@ -1,0 +1,522 @@
+/*
+ * TCSS 305 - Tetris
+ */
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.text.NumberFormatter;
+
+import model.Board;
+
+/**
+ * The GUI of the Tetris game, which is a JFrame.
+ * @author Brandon Gaetaniello
+ * @version 12/9/16
+ */
+public class TetrisGUI extends JFrame
+{
+    /**
+     * The dimensions of the east panel.
+     */
+    private static final Dimension EAST_DIALOG_PANEL_SIZE = new Dimension(150, 50);
+    /**
+     * Used for making panels with a smaller dimension relative to others.
+     */
+    private static final Dimension SMALL_DIALOG_PANEL_SIZE = new Dimension(115, 50);
+    
+    /**
+     * A dimension specifically for the JDialog screen.
+     */
+    private static final Dimension DIALOG_SIZE = new Dimension(275, 200);
+    
+    /**
+     * A color constant for the color brown.
+     */
+    private static final Color COLOR_BROWN = new Color(139, 69, 19);
+    
+    /**
+     * A color constant for the color blue.
+     */
+    private static final Color COLOR_BLUE = new Color(102, 102, 255);
+    
+    /**
+     * A color constant for the color burgundy.
+     */
+    private static final Color COLOR_BURGUNDY = new Color(140, 0, 26);
+    
+    /**
+     * A color constant for the color purple.
+     */
+    private static final Color COLOR_PURPLE = new Color(178, 102, 255);
+    
+    /**
+     * 
+     */
+    private static final int MAJOR_TICK_SPACING = 5;
+    
+    /**
+     * 
+     */
+    private static final int MINOR_TICK_SPACING = 1;
+    
+    /**
+     * A JTextField used for storing keystrokes from the user.
+     */
+    private final JTextField myInputField; 
+       
+    /**
+     * 
+     */
+    private final JPanel myEastPanel;
+    
+    /**
+     * The drawing panel object for Tetris.
+     */
+    private final TetrisDrawingPanel myDrawingPanel;
+    
+    /**
+     * 
+     */
+    private final TetrisScoringPanel myScoringPanel;
+    
+    /**
+     * 
+     */
+    private final TetrisNextPiecePanel myInfoPanel;
+    
+    /**
+     * A Map containing the movements and their controls.
+     */
+    private final Map<String, Integer> myControls;
+    
+    /**
+     * 
+     */
+    private Board myBoard;
+    
+    /**
+     * An array used for storing the movement names.
+     */
+    private String[] myMovementNames;
+      
+    /**
+     * Integer value that stores the last key pressed when re-binding keys.
+     */
+    private int myKeyPressed;
+    
+    /**
+     * String value that stores the option selected when re-binding keys.
+     */
+    private String myOptionSelected;  
+    
+    
+      
+    /**
+     * 
+     */
+    private JMenuItem myGridSizeItem;
+    
+    /**
+     * Constructor for initializing fields of the Tetris GUI class.
+     */
+    public TetrisGUI()
+    {
+        super("Tetris");
+        myBoard = new Board();
+        myEastPanel = new JPanel();   
+        myInputField = new JTextField(); 
+        myInfoPanel = new TetrisNextPiecePanel(getBlocks(), myBoard);
+        myDrawingPanel = new TetrisDrawingPanel(getBlocks(), myBoard);  
+        myScoringPanel = new TetrisScoringPanel(myDrawingPanel);
+        myControls = myDrawingPanel.getControls();  
+        start();      
+    }
+    
+    /**
+     * Starts the GUI creation.
+     */
+    private void start()
+    {
+        myMovementNames = new String[myControls.size()];
+        myEastPanel.setLayout(new BoxLayout(myEastPanel, BoxLayout.PAGE_AXIS));
+        myEastPanel.add(myInfoPanel);
+        myEastPanel.add(myScoringPanel); 
+        myBoard.addObserver(myDrawingPanel);
+        myBoard.addObserver(myScoringPanel);
+        
+        getContentPane().setBackground(Color.BLACK);
+        setLayout(new FlowLayout());         
+        add(myDrawingPanel);        
+        add(myEastPanel);      
+        setJMenuBar(createMenuBar());
+        pack();
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+        setVisible(true);
+        setLocationRelativeTo(null);       
+    }
+    
+    /**
+     * Creates the Map that holds each Tetris block and their corresponding color.
+     * @return Map of Tetris blocks and their color.
+     */
+    private Map<Character, Color> getBlocks()
+    {
+        final Map<Character, Color> blocks = new HashMap<Character, Color>();
+        blocks.put('I', Color.CYAN);
+        blocks.put('J', COLOR_BURGUNDY);
+        blocks.put('L', COLOR_BLUE);
+        blocks.put('O', Color.PINK);
+        blocks.put('S', Color.RED);
+        blocks.put('T', COLOR_PURPLE);
+        blocks.put('Z', COLOR_BROWN);
+        
+        return blocks;
+    }
+    
+    /**
+     * Method for creating the JMenuBar.
+     * @return JMenuBar that holds various JMenu's.
+     */
+    private JMenuBar createMenuBar()
+    {
+        final JMenuBar bar = new JMenuBar();
+        final JMenu help = createHelpMenu(); 
+        final JMenu options = createOptionsMenu();
+        
+        bar.add(help);
+        bar.add(options);
+        
+        return bar;
+    }
+    
+    /**
+     * Creates the help menu for the JMenuBar.
+     * @return a JMenu that holds the behavior of the help menu.
+     */
+    private JMenu createHelpMenu()
+    {
+        final JMenu menu = new JMenu("Help");
+        final JMenuItem setControls = new JMenuItem("Set Hotkeys...");
+        final JMenuItem getControls = new JMenuItem("Controls");
+        final JMenuItem getAlgorithm = new JMenuItem("Scoring Algorithm");
+        
+        // Adds an ActionListener for the Set Hotkeys... button.
+        setControls.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                setControls();
+            }
+        });
+        
+        // Adds an ActionListener for the Controls button.
+        getControls.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                getControls();
+            }
+        });
+        
+        getAlgorithm.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                JOptionPane.showMessageDialog(null, "Each line cleared: 100 Points", 
+                               "Scoring", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        
+        menu.add(setControls);
+        menu.add(getControls);
+        menu.add(getAlgorithm);
+        
+        return menu;
+    }
+    
+    /**
+     * Creates the options menu for the JMenuBar.
+     * @return a JMenu that holds the behavior of the options menu.
+     */
+    private JMenu createOptionsMenu()
+    {
+        final JMenu menu = new JMenu("Options");
+        final JMenuItem newGame = new JMenuItem("New Game");
+        final JMenuItem endGame = new JMenuItem("End Game");
+        myGridSizeItem = new JMenuItem("Grid Size");
+        
+        newGame.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                myGridSizeItem.setEnabled(false);
+                endGame.setEnabled(true);
+                newGame.setEnabled(false);
+                myBoard.newGame();
+                myDrawingPanel.myGameOver = false;
+                myDrawingPanel.myGameStarted = true;
+                myScoringPanel.reset();             
+            }
+        });
+        
+        endGame.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                myGridSizeItem.setEnabled(true);
+                endGame.setEnabled(false);
+                newGame.setEnabled(true);
+                myDrawingPanel.myGameStarted = false;
+                myDrawingPanel.myGameOver = true;
+                myDrawingPanel.repaint();
+            }
+        });
+        final JDialog gridDialog = createGridDialog();
+        
+        myGridSizeItem.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {            
+                gridDialog.setVisible(true);          
+            }
+        });
+                
+        // Iterates through the control map and adds it to an array for movement names.
+        int index = 0;
+        for (final String key : myControls.keySet())
+        {
+            myMovementNames[index] = key;
+            index++;
+        }
+        
+        endGame.setEnabled(false);
+        menu.add(newGame);
+        menu.add(endGame);
+        menu.add(myGridSizeItem);
+        
+        return menu;
+    }
+    
+    /**
+     * 
+     * @return JDialog 
+     */
+    private JDialog createGridDialog()
+    {
+        final JDialog dialog = new JDialog();
+        final JSlider height = new JSlider(SwingConstants.HORIZONTAL, 10, 
+                                           30, 20);
+        final JSlider width = new JSlider(SwingConstants.HORIZONTAL, 10, 
+                                          30, 10);
+        final JLabel heightLabel = new JLabel("Enter the height: ");
+        final JLabel widthLabel = new JLabel("Enter the width: ");
+        final JButton accept = new JButton("Accept");
+        
+        height.setPaintLabels(true);
+        height.setPaintTicks(true);
+        height.setMajorTickSpacing(MAJOR_TICK_SPACING);
+        height.setMinorTickSpacing(MINOR_TICK_SPACING);
+        
+        width.setPaintLabels(true);
+        width.setPaintTicks(true);
+        width.setMajorTickSpacing(MAJOR_TICK_SPACING);
+        width.setMinorTickSpacing(MINOR_TICK_SPACING);
+        
+        
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        dialog.add(heightLabel);
+        dialog.add(height);
+        dialog.add(widthLabel);
+        dialog.add(width);
+        dialog.add(accept, Component.CENTER_ALIGNMENT);
+        dialog.pack();
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(null);
+        
+        accept.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {            
+                dialog.dispose();
+                myBoard = new Board(width.getValue(), height.getValue());
+                myDrawingPanel.setBoard(myBoard);
+                myInfoPanel.setBoard(myBoard);
+                myBoard.addObserver(myScoringPanel);
+                myDrawingPanel.repaint();
+                myDrawingPanel.getTimer().setDelay(myDrawingPanel.getTimer().getInitialDelay());
+                pack();
+                setSize(getBounds().getSize());
+                repaint();
+            }
+        });
+        
+        return dialog;
+    }
+    /**
+     * Method for allowing the user to set their own hot keys for movement.
+     */
+    private void setControls()
+    {
+        final JLabel type = new JLabel("Type a key below : ");
+        final JPanel eastPanel = new JPanel();
+        final JPanel westPanel = new JPanel();
+        final JPanel southPanel = new JPanel();
+        final JDialog dialog = new JDialog();
+        final JButton confirm = new JButton("Confirm");
+        
+        // JComboBox used for cycling through the movement options.
+        final JComboBox<String> options = new JComboBox<String>(myMovementNames);
+        
+        // The default values for the option selected and key pressed.
+        myOptionSelected = myMovementNames[0];
+        myKeyPressed = 0;
+        
+        /**
+         * Adds an ActionListener to listen whenever the JComboBox is changed 
+         * so the option selected can be changed accordingly.
+         */
+        options.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent)     
+            {
+                myInputField.setEnabled(true);
+                myInputField.setText("");
+                myOptionSelected = (String) options.getSelectedItem();
+            }
+        });
+        
+        /**
+         * Adds an ActionListener to listen when the user confirms their choice.
+         */
+        confirm.addActionListener(new ActionListener() 
+        {
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) 
+            {
+                confirmChoice();
+            }
+        });
+        
+        // Sets the preferred sizes of the panels.
+        options.setPreferredSize(SMALL_DIALOG_PANEL_SIZE);  
+        type.setPreferredSize(SMALL_DIALOG_PANEL_SIZE);
+        myInputField.setPreferredSize(SMALL_DIALOG_PANEL_SIZE);
+        eastPanel.setPreferredSize(EAST_DIALOG_PANEL_SIZE);
+        
+        // Panels adding buttons and components.
+        myInputField.addKeyListener(new KeyInput());
+        southPanel.add(confirm, FlowLayout.LEFT);
+        westPanel.add(options);
+        eastPanel.add(type, BorderLayout.NORTH);
+        eastPanel.add(myInputField, BorderLayout.CENTER);
+        
+        // Sets up the dialog and adds panels to specific locations.
+        dialog.setTitle("Set Hotkeys");
+        dialog.add(westPanel, BorderLayout.WEST);
+        dialog.add(eastPanel, BorderLayout.EAST);
+        dialog.add(southPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+        dialog.pack();
+        dialog.setMinimumSize(DIALOG_SIZE);
+        dialog.setLocationRelativeTo(null);
+    }
+    
+    /**
+     * Used to create a menu item that allows the user to see the controls.
+     */
+    private void getControls()
+    {
+        /**
+         * Adds each movement option and their selected hot key to a StringBuilder,
+         * then a JOptionPane shows the string.
+         */
+        final StringBuilder currentControls = new StringBuilder();
+        for (int i = 0; i < myMovementNames.length; i++)
+        {
+            currentControls.append(myMovementNames[i]);
+            currentControls.append(": ");
+            currentControls.append(KeyEvent.getKeyText
+                                   (myControls.get(myMovementNames[i])));
+            currentControls.append(" key\n");
+        }
+        JOptionPane.showMessageDialog(null, currentControls.toString(), "Current Controls", 
+                                      JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    /**
+     * Checks to see if the hot key can be bound.
+     */
+    private void confirmChoice()
+    {
+        // As long as a new key was pressed, it can be bound to a movement.
+        if (myKeyPressed > 0)
+        {
+            JOptionPane.showMessageDialog(null, "The movement \"" 
+                    + myOptionSelected + "\" was bound to the key " 
+                    + KeyEvent.getKeyText(myKeyPressed),
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            myControls.put(myOptionSelected, myKeyPressed);
+        }
+        
+        // Otherwise, a JOptionPane will say that a button was not saved to a hot key.
+        else
+        {
+            JOptionPane.showMessageDialog(null, "Button was not saved successfully",
+                      "Error", JOptionPane.OK_OPTION);
+        }
+        
+        // After bound, sets the new controls and sets the keyPressed to nothing.
+        myControls.put(myOptionSelected, myKeyPressed);
+        myKeyPressed = 0;
+    }
+    
+    /**
+     * KeyListener used for tracking key strokes for re-binding keys.
+     */
+    private class KeyInput extends KeyAdapter
+    {
+        @Override
+        public void keyPressed(final KeyEvent theEvent)
+        {
+            myKeyPressed = (int) theEvent.getKeyCode();
+            myInputField.setText(KeyEvent.getKeyText(myKeyPressed));
+            myInputField.setEnabled(false); 
+        }
+    }  
+}
